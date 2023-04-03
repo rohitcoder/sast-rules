@@ -1,45 +1,38 @@
 rules:
-- id: dangerous-spawn-process
-  mode: taint
-  message: >-
-    Detected `os` function with argument tainted by `event` object.
-    This is dangerous if external data can reach this function call because it allows a malicious
+- id: dangerous-spawn-process__rcpcp
+  languages:
+  - python
+  message: Detected `os` function with argument tainted by `event` object. This is
+    dangerous if external data can reach this function call because it allows a malicious
     actor to execute commands. Ensure no external data reaches here.
   metadata:
-    source-rule-url: https://bandit.readthedocs.io/en/latest/plugins/b605_start_process_with_a_shell.html
+    asvs:
+      control_id: 5.3.8 OS Command Injection
+      control_url: https://github.com/OWASP/ASVS/blob/master/4.0/en/0x13-V5-Validation-Sanitization-Encoding.md#v53-output-encoding-and-injection-prevention-requirements
+      section: 'V5: Validation, Sanitization and Encoding Verification Requirements'
+      version: '4'
+    category: security
+    confidence: MEDIUM
     cwe:
-    - "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+    - 'CWE-78: Improper Neutralization of Special Elements used in an OS Command (''OS
+      Command Injection'')'
+    cwe2021-top25: true
+    cwe2022-top25: true
+    impact: MEDIUM
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    likelihood: HIGH
     owasp:
     - A01:2017 - Injection
     - A03:2021 - Injection
-    asvs:
-      section: 'V5: Validation, Sanitization and Encoding Verification Requirements'
-      control_id: 5.3.8 OS Command Injection
-      control_url: https://github.com/OWASP/ASVS/blob/master/4.0/en/0x13-V5-Validation-Sanitization-Encoding.md#v53-output-encoding-and-injection-prevention-requirements
-      version: '4'
-    category: security
+    references:
+    - https://owasp.org/Top10/A03_2021-Injection
+    source-rule-url: https://bandit.readthedocs.io/en/latest/plugins/b605_start_process_with_a_shell.html
+    subcategory:
+    - vuln
     technology:
     - python
     - aws-lambda
-    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
-    references:
-    - https://owasp.org/Top10/A03_2021-Injection
-    cwe2022-top25: true
-    cwe2021-top25: true
-    subcategory:
-    - vuln
-    likelihood: HIGH
-    impact: MEDIUM
-    confidence: MEDIUM
-  languages:
-  - python
-  severity: ERROR
-  pattern-sources:
-  - patterns:
-    - pattern: event
-    - pattern-inside: |
-        def $HANDLER(event, context):
-          ...
+  mode: taint
   pattern-sinks:
   - patterns:
     - focus-metavariable: $CMD
@@ -65,3 +58,8 @@ rules:
         - metavariable-regex:
             metavariable: $BASH
             regex: (.*)(sh|bash|ksh|csh|tcsh|zsh)
+  pattern-sources:
+  - patterns:
+    - pattern: event
+    - pattern-inside: "def $HANDLER(event, context):\n  ...\n"
+  severity: ERROR

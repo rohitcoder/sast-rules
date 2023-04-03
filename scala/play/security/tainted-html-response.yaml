@@ -1,75 +1,32 @@
 rules:
-- id: tainted-html-response
-  mode: taint
+- id: tainted-html-response__dknoo
+  languages:
+  - scala
+  message: Detected a request with potential user-input going into an `Ok()` response.  This
+    bypasses any view or template environments, including HTML escaping, which may
+    expose this application to cross-site scripting (XSS) vulnerabilities. Consider
+    using a view technology such as Twirl which automatically escapes HTML views.
   metadata:
     category: security
+    confidence: MEDIUM
     cwe:
-    - "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+    - 'CWE-79: Improper Neutralization of Input During Web Page Generation (''Cross-site
+      Scripting'')'
+    cwe2021-top25: true
+    cwe2022-top25: true
+    impact: MEDIUM
+    likelihood: HIGH
     owasp:
     - A07:2017 - Cross-Site Scripting (XSS)
     - A03:2021 - Injection
+    references:
+    - https://owasp.org/Top10/A03_2021-Injection
+    subcategory:
+    - vuln
     technology:
     - scala
     - play
-    confidence: MEDIUM
-    references:
-    - https://owasp.org/Top10/A03_2021-Injection
-    cwe2022-top25: true
-    cwe2021-top25: true
-    subcategory:
-    - vuln
-    likelihood: HIGH
-    impact: MEDIUM
-  message: >-
-    Detected a request with potential user-input going into an `Ok()` response.  This bypasses any view
-    or template environments, including HTML escaping, which may
-    expose this application to cross-site scripting (XSS) vulnerabilities.
-    Consider using a view technology such as Twirl which automatically escapes HTML views.
-  pattern-sources:
-  - patterns:
-    - pattern-either:
-      - patterns:
-        - pattern: $REQ
-        - pattern-either:
-          - pattern-inside: |
-              Action {
-                $REQ: Request[$T] => 
-                  ...
-              }
-          - pattern-inside: |
-              Action(...) {
-                $REQ: Request[$T] => 
-                  ...
-              }
-          - pattern-inside: |
-              Action.async {
-                $REQ: Request[$T] => 
-                  ...
-              }
-          - pattern-inside: |
-              Action.async(...) {
-                $REQ: Request[$T] => 
-                  ...
-              }
-      - patterns:
-        - pattern: $PARAM
-        - pattern-either:
-          - pattern-inside: |
-              def $CTRL(..., $PARAM: $TYPE, ...) = Action {
-                ...
-              }
-          - pattern-inside: |
-              def $CTRL(..., $PARAM: $TYPE, ...) = Action(...) {
-                ...
-              }
-          - pattern-inside: |
-              def $CTRL(..., $PARAM: $TYPE, ...) = Action.async {
-                ...
-              }
-          - pattern-inside: |
-              def $CTRL(..., $PARAM: $TYPE, ...) = Action.async(...) {
-                ...
-              }
+  mode: taint
   pattern-sanitizers:
   - pattern-either:
     - pattern: org.apache.commons.lang3.StringEscapeUtils.escapeHtml4(...)
@@ -88,14 +45,28 @@ rules:
       - pattern: Ok(...).as($CTYPE)
       - pattern-not: Ok(...).as("...")
       - pattern-either:
-        - pattern-inside: |
-            def $FUNC(..., $URL: $T, ...) = $A {
-              ...
-            }
-        - pattern-inside: |
-            def $FUNC(..., $URL: $T, ...) = {
-              ...
-            }
+        - pattern-inside: "def $FUNC(..., $URL: $T, ...) = $A {\n  ...\n}\n"
+        - pattern-inside: "def $FUNC(..., $URL: $T, ...) = {\n  ...\n}\n"
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - patterns:
+        - pattern: $REQ
+        - pattern-either:
+          - pattern-inside: "Action {\n  $REQ: Request[$T] => \n    ...\n}\n"
+          - pattern-inside: "Action(...) {\n  $REQ: Request[$T] => \n    ...\n}\n"
+          - pattern-inside: "Action.async {\n  $REQ: Request[$T] => \n    ...\n}\n"
+          - pattern-inside: "Action.async(...) {\n  $REQ: Request[$T] => \n    ...\n\
+              }\n"
+      - patterns:
+        - pattern: $PARAM
+        - pattern-either:
+          - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = Action {\n  ...\n\
+              }\n"
+          - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = Action(...) {\n\
+              \  ...\n}\n"
+          - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = Action.async {\n\
+              \  ...\n}\n"
+          - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = Action.async(...)\
+              \ {\n  ...\n}\n"
   severity: WARNING
-  languages:
-  - scala

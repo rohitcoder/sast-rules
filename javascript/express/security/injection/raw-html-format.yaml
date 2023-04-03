@@ -1,32 +1,51 @@
 rules:
-- id: raw-html-format
-  message: >-
-    User data flows into the host portion of this manually-constructed HTML.
-    This can introduce a Cross-Site-Scripting (XSS) vulnerability if this comes from  user-provided input.
-    Consider using a sanitization library such as  DOMPurify to sanitize the HTML within.
+- id: raw-html-format__ulfow
+  languages:
+  - javascript
+  - typescript
+  message: User data flows into the host portion of this manually-constructed HTML.
+    This can introduce a Cross-Site-Scripting (XSS) vulnerability if this comes from  user-provided
+    input. Consider using a sanitization library such as  DOMPurify to sanitize the
+    HTML within.
   metadata:
+    category: security
+    confidence: MEDIUM
     cwe:
-    - "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+    - 'CWE-79: Improper Neutralization of Input During Web Page Generation (''Cross-site
+      Scripting'')'
+    cwe2021-top25: true
+    cwe2022-top25: true
+    impact: MEDIUM
+    likelihood: HIGH
     owasp:
     - A07:2017 - Cross-Site Scripting (XSS)
     - A03:2021 - Injection
     references:
     - https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html
-    category: security
-    technology:
-    - express
-    cwe2022-top25: true
-    cwe2021-top25: true
     subcategory:
     - vuln
-    likelihood: HIGH
-    impact: MEDIUM
-    confidence: MEDIUM
-  languages:
-  - javascript
-  - typescript
-  severity: WARNING
+    technology:
+    - express
   mode: taint
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - patterns:
+        - pattern-either:
+          - pattern: '"$HTMLSTR" + $EXPR'
+          - pattern: '"$HTMLSTR".concat(...)'
+          - pattern: util.format($HTMLSTR, ...)
+        - metavariable-pattern:
+            language: generic
+            metavariable: $HTMLSTR
+            pattern: <$TAG ...
+      - patterns:
+        - pattern: '`...`
+
+            '
+        - pattern-regex: '.*<\w+.*
+
+            '
   pattern-sources:
   - patterns:
     - pattern-either:
@@ -47,11 +66,14 @@ rules:
       - pattern: $REQ.headers
   - patterns:
     - pattern-either:
-      - pattern-inside: |
-          ({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>
+      - pattern-inside: '({ $REQ }: Request,$RES: Response, $NEXT: NextFunction) =>
+
           {...}
-      - pattern-inside: |
-          ({ $REQ }: Request,$RES: Response) => {...}
+
+          '
+      - pattern-inside: '({ $REQ }: Request,$RES: Response) => {...}
+
+          '
     - focus-metavariable: $REQ
     - pattern-either:
       - pattern: params
@@ -59,20 +81,4 @@ rules:
       - pattern: cookies
       - pattern: headers
       - pattern: body
-  pattern-sinks:
-  - patterns:
-    - pattern-either:
-      - patterns:
-        - pattern-either:
-          - pattern: '"$HTMLSTR" + $EXPR'
-          - pattern: '"$HTMLSTR".concat(...)'
-          - pattern: util.format($HTMLSTR, ...)
-        - metavariable-pattern:
-            metavariable: $HTMLSTR
-            language: generic
-            pattern: <$TAG ...
-      - patterns:
-        - pattern: |
-            `...`
-        - pattern-regex: |
-            .*<\w+.*
+  severity: WARNING

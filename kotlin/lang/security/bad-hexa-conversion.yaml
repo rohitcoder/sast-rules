@@ -1,32 +1,25 @@
 rules:
-- id: bad-hexa-conversion
+- id: bad-hexa-conversion__qbzji
+  languages:
+  - kt
+  message: '''Integer.toHexString()'' strips leading zeroes from each byte if read
+    byte-by-byte. This mistake weakens the hash value computed since it introduces
+    more collisions. Use ''String.format("%02X", ...)'' instead.'
   metadata:
+    category: security
+    confidence: LOW
     cwe:
     - 'CWE-704: Incorrect Type Conversion or Cast'
-    owasp: 'A03:2017 - Sensitive Data Exposure'
-    source-rule-url: https://find-sec-bugs.github.io/bugs.htm#BAD_HEXA_CONVERSION
-    category: security
-    technology:
-    - kotlin
+    impact: LOW
+    likelihood: LOW
+    owasp: A03:2017 - Sensitive Data Exposure
     references:
     - https://cwe.mitre.org/data/definitions/704.html
+    source-rule-url: https://find-sec-bugs.github.io/bugs.htm#BAD_HEXA_CONVERSION
     subcategory:
     - audit
-    likelihood: LOW
-    impact: LOW
-    confidence: LOW
-  message: >-
-    'Integer.toHexString()' strips leading zeroes from each byte if read byte-by-byte.
-    This mistake weakens the hash value computed since it introduces more collisions.
-    Use 'String.format("%02X", ...)' instead.
+    technology:
+    - kotlin
+  pattern: "fun $METHOD(...) {\n  ...\n  val $MD: MessageDigest = ...\n  ...\n  $MD.digest(...)\n\
+    \  ...\n  Integer.toHexString(...)\n}"
   severity: WARNING
-  languages: [kt]
-  pattern: |-
-    fun $METHOD(...) {
-      ...
-      val $MD: MessageDigest = ...
-      ...
-      $MD.digest(...)
-      ...
-      Integer.toHexString(...)
-    }

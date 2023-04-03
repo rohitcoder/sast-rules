@@ -1,41 +1,32 @@
 rules:
-- id: tainted-html-string
+- id: tainted-html-string__kqcuu
   languages:
   - python
-  severity: WARNING
-  message: >-
-    Detected user input flowing into a manually constructed HTML string. You may be accidentally bypassing
-    secure methods
-    of rendering HTML by manually constructing HTML and this could create a cross-site scripting vulnerability,
-    which could
-    let attackers steal sensitive user data. To be sure this is safe, check that the HTML is rendered
-    safely. Otherwise, use
-    templates which will safely render HTML instead.
+  message: Detected user input flowing into a manually constructed HTML string. You
+    may be accidentally bypassing secure methods of rendering HTML by manually constructing
+    HTML and this could create a cross-site scripting vulnerability, which could let
+    attackers steal sensitive user data. To be sure this is safe, check that the HTML
+    is rendered safely. Otherwise, use templates which will safely render HTML instead.
   metadata:
+    category: security
+    confidence: MEDIUM
     cwe:
-    - "CWE-79: Improper Neutralization of Input During Web Page Generation ('Cross-site Scripting')"
+    - 'CWE-79: Improper Neutralization of Input During Web Page Generation (''Cross-site
+      Scripting'')'
+    cwe2021-top25: true
+    cwe2022-top25: true
+    impact: MEDIUM
+    likelihood: HIGH
     owasp:
     - A07:2017 - Cross-Site Scripting (XSS)
     - A03:2021 - Injection
-    category: security
-    technology:
-    - aws-lambda
     references:
     - https://owasp.org/Top10/A03_2021-Injection
-    cwe2022-top25: true
-    cwe2021-top25: true
     subcategory:
     - vuln
-    likelihood: HIGH
-    impact: MEDIUM
-    confidence: MEDIUM
+    technology:
+    - aws-lambda
   mode: taint
-  pattern-sources:
-  - patterns:
-    - pattern: event
-    - pattern-inside: |
-        def $HANDLER(event, context):
-          ...
   pattern-sinks:
   - patterns:
     - pattern-either:
@@ -46,16 +37,24 @@ rules:
           - pattern: '"$HTMLSTR" + ...'
           - pattern: f"$HTMLSTR{...}..."
       - patterns:
-        - pattern-inside: |
-            $HTML = "$HTMLSTR"
+        - pattern-inside: '$HTML = "$HTMLSTR"
+
             ...
+
+            '
         - pattern-either:
           - pattern: $HTML % ...
           - pattern: $HTML.format(...)
           - pattern: $HTML + ...
     - metavariable-pattern:
-        metavariable: $HTMLSTR
         language: generic
+        metavariable: $HTMLSTR
         pattern: <$TAG ...
-    - pattern-not-inside: |
-        print(...)
+    - pattern-not-inside: 'print(...)
+
+        '
+  pattern-sources:
+  - patterns:
+    - pattern: event
+    - pattern-inside: "def $HANDLER(event, context):\n  ...\n"
+  severity: WARNING

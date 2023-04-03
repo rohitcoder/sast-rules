@@ -1,16 +1,16 @@
 rules:
-- id: telnet-request
-  message: >-
-    Checks for attempts to connect through telnet. This is insecure as the telnet protocol supports
-    no encryption, and data passes through unencrypted.
-  severity: WARNING
+- id: telnet-request__wmsxs
+  languages:
+  - java
+  message: Checks for attempts to connect through telnet. This is insecure as the
+    telnet protocol supports no encryption, and data passes through unencrypted.
   metadata:
-    likelihood: MEDIUM
-    impact: MEDIUM
-    confidence: MEDIUM
     category: security
+    confidence: MEDIUM
     cwe: 'CWE-319: Cleartext Transmission of Sensitive Information'
-    owasp: 'A03:2017 - Sensitive Data Exposure'
+    impact: MEDIUM
+    likelihood: MEDIUM
+    owasp: A03:2017 - Sensitive Data Exposure
     references:
     - https://commons.apache.org/proper/commons-net/javadocs/api-3.6/org/apache/commons/net/telnet/TelnetClient.html
     subcategory:
@@ -18,9 +18,11 @@ rules:
     technology:
     - java
     vulnerability: Insecure Transport
-  languages:
-  - java
-  pattern: |
-    $TELNETCLIENT = new TelnetClient(...);
+  pattern: '$TELNETCLIENT = new TelnetClient(...);
+
     ...
+
     $TELNETCLIENT.connect(...);
+
+    '
+  severity: WARNING

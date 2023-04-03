@@ -1,47 +1,36 @@
 rules:
-- id: open-redirect
+- id: open-redirect__iglvt
+  languages:
+  - csharp
+  message: A query string parameter may contain a URL value that could cause the web
+    application to redirect the request to a malicious website controlled by an attacker.
+    Make sure to sanitize this parameter sufficiently.
+  metadata:
+    category: security
+    confidence: LOW
+    cwe:
+    - 'CWE-601: URL Redirection to Untrusted Site (''Open Redirect'')'
+    impact: MEDIUM
+    likelihood: MEDIUM
+    owasp:
+    - A01:2021 - Broken Access Control
+    references:
+    - https://cwe.mitre.org/data/definitions/601.html
+    subcategory:
+    - vuln
+    technology:
+    - csharp
   mode: taint
-  pattern-sources:
-  - patterns:
-    - focus-metavariable: $PARAM
-    - pattern-inside: |
-        public $TYPE $FUNCNAME (..., string $PARAM, ...) {
-          ...
-        }
   pattern-sinks:
   - patterns:
     - pattern: Redirect(...)
-    - pattern-not-inside: |
-        if (IsLocalUrl(...)) { 
-            ... 
-            Redirect(...); 
-            ...
-        }
-    - pattern-not-inside: |
-        if ($URL.IsLocalUrl(...)) { 
-            ... 
-            Redirect(...); 
-            ...
-        }
-  message: >-
-    A query string parameter may contain a URL value that could cause the
-    web application to redirect the request to a malicious website controlled by
-    an attacker. Make sure to sanitize this parameter sufficiently.
-  metadata:
-    category: security
-    technology:
-    - csharp
-    cwe:
-    - "CWE-601: URL Redirection to Untrusted Site ('Open Redirect')"
-    references:
-    - https://cwe.mitre.org/data/definitions/601.html
-    owasp:
-    - A01:2021 - Broken Access Control
-    subcategory:
-    - vuln
-    likelihood: MEDIUM
-    impact: MEDIUM
-    confidence: LOW
-  languages:
-  - csharp
+    - pattern-not-inside: "if (IsLocalUrl(...)) { \n    ... \n    Redirect(...); \n\
+        \    ...\n}\n"
+    - pattern-not-inside: "if ($URL.IsLocalUrl(...)) { \n    ... \n    Redirect(...);\
+        \ \n    ...\n}\n"
+  pattern-sources:
+  - patterns:
+    - focus-metavariable: $PARAM
+    - pattern-inside: "public $TYPE $FUNCNAME (..., string $PARAM, ...) {\n  ...\n\
+        }\n"
   severity: ERROR

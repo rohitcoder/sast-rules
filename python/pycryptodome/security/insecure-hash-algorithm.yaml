@@ -1,13 +1,17 @@
 rules:
-- id: insecure-hash-algorithm-sha1
-  message: >-
-    Detected SHA1 hash algorithm which is considered insecure. SHA1 is not
-    collision resistant and is therefore not suitable as a cryptographic
-    signature. Use SHA256 or SHA3 instead.
+- id: insecure-hash-algorithm-sha1__zzote
+  languages:
+  - python
+  message: Detected SHA1 hash algorithm which is considered insecure. SHA1 is not
+    collision resistant and is therefore not suitable as a cryptographic signature.
+    Use SHA256 or SHA3 instead.
   metadata:
-    source-rule-url: https://github.com/PyCQA/bandit/blob/d5f8fa0d89d7b11442fc6ec80ca42953974354c8/bandit/blacklists/calls.py#L59
+    category: security
+    confidence: MEDIUM
     cwe:
     - 'CWE-327: Use of a Broken or Risky Cryptographic Algorithm'
+    impact: MEDIUM
+    likelihood: LOW
     owasp:
     - A03:2017 - Sensitive Data Exposure
     - A02:2021 - Cryptographic Failures
@@ -16,17 +20,12 @@ rules:
     - https://www.trendmicro.com/vinfo/us/security/news/vulnerabilities-and-exploits/sha-1-collision-signals-the-end-of-the-algorithm-s-viability
     - http://2012.sharcs.org/slides/stevens.pdf
     - https://pycryptodome.readthedocs.io/en/latest/src/hash/sha3_256.html
-    category: security
-    technology:
-    - pycryptodome
+    source-rule-url: https://github.com/PyCQA/bandit/blob/d5f8fa0d89d7b11442fc6ec80ca42953974354c8/bandit/blacklists/calls.py#L59
     subcategory:
     - vuln
-    likelihood: LOW
-    impact: MEDIUM
-    confidence: MEDIUM
-  severity: WARNING
-  languages:
-  - python
+    technology:
+    - pycryptodome
   pattern-either:
   - pattern: Crypto.Hash.SHA.new(...)
   - pattern: Cryptodome.Hash.SHA.new (...)
+  severity: WARNING

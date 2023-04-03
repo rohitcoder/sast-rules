@@ -1,17 +1,21 @@
 rules:
-- id: ftp-request
-  message: >-
-    Checks for outgoing connections to ftp servers with the ftp package. FTP does not encrypt traffic,
-    possibly
-    leading to PII being sent plaintext over the network. Instead, connect via the SFTP protocol.
-  severity: WARNING
+- fix-regex:
+    count: 1
+    regex: '[fF][tT][pP]://'
+    replacement: sftp://
+  id: ftp-request__cplyg
+  languages:
+  - go
+  message: Checks for outgoing connections to ftp servers with the ftp package. FTP
+    does not encrypt traffic, possibly leading to PII being sent plaintext over the
+    network. Instead, connect via the SFTP protocol.
   metadata:
-    likelihood: MEDIUM
-    impact: MEDIUM
-    confidence: MEDIUM
     category: security
+    confidence: MEDIUM
     cwe: 'CWE-319: Cleartext Transmission of Sensitive Information'
-    owasp: 'A03:2017 - Sensitive Data Exposure'
+    impact: MEDIUM
+    likelihood: MEDIUM
+    owasp: A03:2017 - Sensitive Data Exposure
     references:
     - https://godoc.org/github.com/jlaffaye/ftp#Dial
     - https://github.com/jlaffaye/ftp
@@ -20,28 +24,35 @@ rules:
     technology:
     - ftp
     vulnerability: Insecure Transport
-  languages:
-  - go
-  fix-regex:
-    regex: '[fF][tT][pP]://'
-    replacement: sftp://
-    count: 1
   pattern-either:
-  - pattern: |
-      ftp.Dial("=~/^[fF][tT][pP]://.*/", ...)
-  - pattern: |
-      ftp.DialTimeout("=~/^[fF][tT][pP]://.*/", ...)
-  - pattern: |
-      ftp.Connect("=~/^[fF][tT][pP]://.*/")
-  - pattern: |
-      $URL = "=~/^[fF][tT][pP]://.*/"
+  - pattern: 'ftp.Dial("=~/^[fF][tT][pP]://.*/", ...)
+
+      '
+  - pattern: 'ftp.DialTimeout("=~/^[fF][tT][pP]://.*/", ...)
+
+      '
+  - pattern: 'ftp.Connect("=~/^[fF][tT][pP]://.*/")
+
+      '
+  - pattern: '$URL = "=~/^[fF][tT][pP]://.*/"
+
       ...
+
       ftp.Dial($URL, ...)
-  - pattern: |
-      $URL = "=~/^[fF][tT][pP]://.*/"
+
+      '
+  - pattern: '$URL = "=~/^[fF][tT][pP]://.*/"
+
       ...
+
       ftp.DialTimeout($URL, ...)
-  - pattern: |
-      $URL = "=~/^[fF][tT][pP]://.*/"
+
+      '
+  - pattern: '$URL = "=~/^[fF][tT][pP]://.*/"
+
       ...
+
       ftp.Connect($URL)
+
+      '
+  severity: WARNING

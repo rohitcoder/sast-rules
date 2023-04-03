@@ -1,16 +1,16 @@
 rules:
-- id: telnet-request
-  message: >-
-    Checks for attempts to connect to an insecure telnet server using the package telnet.
-    This is bad because it can lead to man in the middle attacks.
-  severity: WARNING
+- id: telnet-request__rvnoe
+  languages:
+  - go
+  message: Checks for attempts to connect to an insecure telnet server using the package
+    telnet. This is bad because it can lead to man in the middle attacks.
   metadata:
-    likelihood: MEDIUM
-    impact: MEDIUM
-    confidence: MEDIUM
     category: security
+    confidence: MEDIUM
     cwe: 'CWE-319: Cleartext Transmission of Sensitive Information'
-    owasp: 'A03:2017 - Sensitive Data Exposure'
+    impact: MEDIUM
+    likelihood: MEDIUM
+    owasp: A03:2017 - Sensitive Data Exposure
     references:
     - https://godoc.org/github.com/reiver/go-telnet
     subcategory:
@@ -18,7 +18,7 @@ rules:
     technology:
     - go-telnet
     vulnerability: Insecure Transport
-  languages:
-  - go
-  pattern: |
-    telnet.DialToAndCall(...)
+  pattern: 'telnet.DialToAndCall(...)
+
+    '
+  severity: WARNING

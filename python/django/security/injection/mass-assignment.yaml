@@ -1,31 +1,35 @@
 rules:
-- id: mass-assignment
-  languages: [python]
-  severity: WARNING
-  message: >-
-    Mass assignment detected. This can result in assignment to model fields that are
-    unintended and can be exploited by an attacker. Instead of using '**request.$W',
+- id: mass-assignment__dywky
+  languages:
+  - python
+  message: Mass assignment detected. This can result in assignment to model fields
+    that are unintended and can be exploited by an attacker. Instead of using '**request.$W',
     assign each field you want to edit individually to prevent mass assignment. You
     can read more about mass assignment at https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html.
   metadata:
+    category: security
+    confidence: LOW
     cwe:
-    - 'CWE-915: Improperly Controlled Modification of Dynamically-Determined Object Attributes'
+    - 'CWE-915: Improperly Controlled Modification of Dynamically-Determined Object
+      Attributes'
+    impact: MEDIUM
+    likelihood: LOW
     owasp:
     - A08:2021 - Software and Data Integrity Failures
     owaspapi: 'API6: Mass Assignment'
     references:
     - https://cheatsheetseries.owasp.org/cheatsheets/Mass_Assignment_Cheat_Sheet.html
-    category: security
-    technology:
-    - django
     subcategory:
     - audit
-    likelihood: LOW
-    impact: MEDIUM
-    confidence: LOW
+    technology:
+    - django
   pattern-either:
   - pattern: $MODEL.objects.create(**request.$W)
-  - pattern: |
-      $OBJ.update(**request.$W)
+  - pattern: '$OBJ.update(**request.$W)
+
       ...
+
       $OBJ.save()
+
+      '
+  severity: WARNING
