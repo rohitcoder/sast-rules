@@ -2,32 +2,77 @@ rules:
 - id: tainted-sql-string__davtc
   languages:
   - scala
-  message: User data flows into this manually-constructed SQL string. User data can
-    be safely inserted into SQL strings using prepared statements or an object-relational
-    mapper (ORM). Manually-constructed SQL strings is a possible indicator of SQL
-    injection, which could let an attacker steal or manipulate data from the database.
-    Instead, use prepared statements (`connection.PreparedStatement`) or a safe library.
+  severity: ERROR
+  mode: taint
+  message: User data flows into this manually-constructed SQL string. User data can be safely inserted
+    into SQL strings using prepared statements or an object-relational mapper (ORM). Manually-constructed
+    SQL strings is a possible indicator of SQL injection, which could let an attacker steal or manipulate
+    data from the database. Instead, use prepared statements (`connection.PreparedStatement`) or a safe
+    library.
   metadata:
-    category: security
-    confidence: MEDIUM
     cwe:
-    - 'CWE-89: Improper Neutralization of Special Elements used in an SQL Command
-      (''SQL Injection'')'
-    cwe2021-top25: true
-    cwe2022-top25: true
-    impact: HIGH
-    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
-    likelihood: MEDIUM
+    - "CWE-89: Improper Neutralization of Special Elements used in an SQL Command ('SQL Injection')"
     owasp:
     - A01:2017 - Injection
     - A03:2021 - Injection
     references:
     - https://docs.oracle.com/javase/7/docs/api/java/sql/PreparedStatement.html
-    subcategory:
-    - vuln
+    category: security
     technology:
     - scala
-  mode: taint
+    confidence: MEDIUM
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    cwe2022-top25: true
+    cwe2021-top25: true
+    subcategory:
+    - vuln
+    likelihood: MEDIUM
+    impact: HIGH
+  pattern-sources:
+  - patterns:
+    - pattern: $PARAM
+    - pattern-either:
+      - pattern-inside: |
+          def $CTRL(..., $PARAM: $TYPE, ...) = {
+            ...
+          }
+      - pattern-inside: |
+          def $CTRL(..., $PARAM: $TYPE, ...) = $A {
+            ...
+          }
+      - pattern-inside: |
+          def $CTRL(..., $PARAM: $TYPE, ...) = $A(...) {
+            ...
+          }
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - patterns:
+        - pattern-either:
+          - pattern: |
+              "$SQLSTR" + ...
+          - pattern: |
+              "$SQLSTR".format(...)
+          - patterns:
+            - pattern-inside: |
+                $SB = new StringBuilder("$SQLSTR");
+                ...
+            - pattern: $SB.append(...)
+          - patterns:
+            - pattern-inside: |
+                $VAR = "$SQLSTR"
+                ...
+            - pattern: $VAR += ...
+        - metavariable-regex:
+            metavariable: $SQLSTR
+            regex: (?i)(select|delete|insert|create|update|alter|drop)\b
+      - patterns:
+        - pattern-either:
+          - pattern: s"..."
+          - pattern: f"..."
+        - pattern-regex: |
+            .*\b(?i)(select|delete|insert|create|update|alter|drop)\b.*
+    - pattern-not-inside: println(...)
   pattern-sanitizers:
   - pattern-either:
     - patterns:
@@ -40,47 +85,3 @@ rules:
       - metavariable-regex:
           metavariable: $METHOD
           regex: (i?)(trace|info|warn|warning|warnToError|error|debug)
-  pattern-sinks:
-  - patterns:
-    - pattern-either:
-      - patterns:
-        - pattern-either:
-          - pattern: '"$SQLSTR" + ...
-
-              '
-          - pattern: '"$SQLSTR".format(...)
-
-              '
-          - patterns:
-            - pattern-inside: '$SB = new StringBuilder("$SQLSTR");
-
-                ...
-
-                '
-            - pattern: $SB.append(...)
-          - patterns:
-            - pattern-inside: '$VAR = "$SQLSTR"
-
-                ...
-
-                '
-            - pattern: $VAR += ...
-        - metavariable-regex:
-            metavariable: $SQLSTR
-            regex: (?i)(select|delete|insert|create|update|alter|drop)\b
-      - patterns:
-        - pattern-either:
-          - pattern: s"..."
-          - pattern: f"..."
-        - pattern-regex: '.*\b(?i)(select|delete|insert|create|update|alter|drop)\b.*
-
-            '
-    - pattern-not-inside: println(...)
-  pattern-sources:
-  - patterns:
-    - pattern: $PARAM
-    - pattern-either:
-      - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = {\n  ...\n}\n"
-      - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = $A {\n  ...\n}\n"
-      - pattern-inside: "def $CTRL(..., $PARAM: $TYPE, ...) = $A(...) {\n  ...\n}\n"
-  severity: ERROR

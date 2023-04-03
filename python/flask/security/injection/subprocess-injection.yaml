@@ -1,63 +1,9 @@
 rules:
 - id: subprocess-injection__yrtca
-  languages:
-  - python
-  message: Detected user input entering a `subprocess` call unsafely. This could result
-    in a command injection vulnerability. An attacker could use this vulnerability
-    to execute arbitrary commands on the host, which allows them to download malware,
-    scan sensitive data, or run any command they wish on the server. Do not let users
-    choose the command to run. In general, prefer to use Python API versions of system
-    commands. If you must use subprocess, use a dictionary to allowlist a set of commands.
-  metadata:
-    category: security
-    confidence: HIGH
-    cwe:
-    - 'CWE-78: Improper Neutralization of Special Elements used in an OS Command (''OS
-      Command Injection'')'
-    cwe2021-top25: true
-    cwe2022-top25: true
-    impact: MEDIUM
-    likelihood: HIGH
-    owasp:
-    - A01:2017 - Injection
-    - A03:2021 - Injection
-    references:
-    - https://semgrep.dev/docs/cheat-sheets/python-command-injection/
-    subcategory:
-    - vuln
-    technology:
-    - flask
+  languages: [python]
   mode: taint
   options:
     symbolic_propagation: true
-  pattern-sanitizers:
-  - patterns:
-    - pattern: $DICT[$KEY]
-    - focus-metavariable: $KEY
-  pattern-sinks:
-  - patterns:
-    - pattern-either:
-      - patterns:
-        - pattern: subprocess.$FUNC(...)
-        - pattern-not: subprocess.$FUNC("...", ...)
-        - pattern-not: subprocess.$FUNC(["...", ...], ...)
-        - pattern-not-inside: '$CMD = ["...", ...]
-
-            ...
-
-            subprocess.$FUNC($CMD, ...)
-
-            '
-      - patterns:
-        - pattern: subprocess.$FUNC(["$SHELL", "-c", ...], ...)
-        - metavariable-regex:
-            metavariable: $SHELL
-            regex: ^(sh|bash|ksh|csh|tcsh|zsh)$
-      - patterns:
-        - pattern: subprocess.$FUNC(["$INTERPRETER", ...], ...)
-        - metavariable-regex:
-            metavariable: $INTERPRETER
-            regex: ^(python|python\d)$
   pattern-sources:
   - pattern-either:
     - patterns:
@@ -81,7 +27,60 @@ rules:
         - pattern: flask.request.view_args.get(...)
         - pattern: flask.request.view_args[...]
     - patterns:
-      - pattern-inside: "@$APP.route($ROUTE, ...)\ndef $FUNC(..., $ROUTEVAR, ...):\n\
-          \  ...\n"
+      - pattern-inside: |
+          @$APP.route($ROUTE, ...)
+          def $FUNC(..., $ROUTEVAR, ...):
+            ...
       - focus-metavariable: $ROUTEVAR
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - patterns:
+        - pattern: subprocess.$FUNC(...)
+        - pattern-not: subprocess.$FUNC("...", ...)
+        - pattern-not: subprocess.$FUNC(["...", ...], ...)
+        - pattern-not-inside: |
+            $CMD = ["...", ...]
+            ...
+            subprocess.$FUNC($CMD, ...)
+      - patterns:
+        - pattern: subprocess.$FUNC(["$SHELL", "-c", ...], ...)
+        - metavariable-regex:
+            metavariable: $SHELL
+            regex: ^(sh|bash|ksh|csh|tcsh|zsh)$
+      - patterns:
+        - pattern: subprocess.$FUNC(["$INTERPRETER", ...], ...)
+        - metavariable-regex:
+            metavariable: $INTERPRETER
+            regex: ^(python|python\d)$
+  pattern-sanitizers:
+  - patterns:
+    - pattern: $DICT[$KEY]
+    - focus-metavariable: $KEY
   severity: ERROR
+  message: >-
+    Detected user input entering a `subprocess` call unsafely. This could
+    result in a command injection vulnerability. An attacker could use this
+    vulnerability to execute arbitrary commands on the host, which allows
+    them to download malware, scan sensitive data, or run any command they
+    wish on the server. Do not let users choose the command to run. In general,
+    prefer to use Python API versions of system commands. If you must use subprocess,
+    use a dictionary to allowlist a set of commands.
+  metadata:
+    category: security
+    technology:
+    - flask
+    owasp:
+    - A01:2017 - Injection
+    - A03:2021 - Injection
+    cwe:
+    - "CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection')"
+    references:
+    - https://semgrep.dev/docs/cheat-sheets/python-command-injection/
+    confidence: HIGH
+    cwe2022-top25: true
+    cwe2021-top25: true
+    subcategory:
+    - vuln
+    likelihood: HIGH
+    impact: MEDIUM

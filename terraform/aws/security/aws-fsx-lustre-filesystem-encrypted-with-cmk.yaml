@@ -1,28 +1,35 @@
 rules:
 - id: aws-fsx-lustre-filesystem-encrypted-with-cmk__spqcx
-  languages:
-  - hcl
-  message: Ensure FSX Lustre file system is encrypted at rest using KMS CMKs. CMKs
-    gives you control over the encryption key in terms of access and rotation.
+  patterns:
+  - pattern: |
+      resource "aws_fsx_lustre_file_system" $ANYTHING {
+        ...
+      }
+  - pattern-not-inside: |
+      resource "aws_fsx_lustre_file_system" $ANYTHING {
+        ...
+        kms_key_id = ...
+        ...
+      }
+  message: >-
+    Ensure FSX Lustre file system is encrypted at rest using KMS CMKs. CMKs gives you control over the
+    encryption key in terms of access and rotation.
   metadata:
     category: security
-    confidence: LOW
-    cwe:
-    - 'CWE-311: Missing Encryption of Sensitive Data'
-    impact: LOW
-    likelihood: LOW
+    technology:
+    - terraform
+    - aws
     owasp:
     - A03:2017 - Sensitive Data Exposure
     - A04:2021 - Insecure Design
+    cwe:
+    - 'CWE-311: Missing Encryption of Sensitive Data'
     references:
     - https://owasp.org/Top10/A04_2021-Insecure_Design
     subcategory:
     - audit
-    technology:
-    - terraform
-    - aws
-  patterns:
-  - pattern: "resource \"aws_fsx_lustre_file_system\" $ANYTHING {\n  ...\n}\n"
-  - pattern-not-inside: "resource \"aws_fsx_lustre_file_system\" $ANYTHING {\n  ...\n\
-      \  kms_key_id = ...\n  ...\n}\n"
+    likelihood: LOW
+    impact: LOW
+    confidence: LOW
+  languages: [hcl]
   severity: WARNING

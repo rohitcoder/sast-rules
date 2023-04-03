@@ -1,18 +1,19 @@
 rules:
 - id: disallow-old-tls-versions1__uyldf
-  languages:
-  - java
-  message: Detects direct creations of SSLConnectionSocketFactories that don't disallow
-    SSL v2, SSL v3, and TLS v1. SSLSocketFactory can be used to validate the identity
-    of the HTTPS server against a list of trusted certificates. These protocols are
-    deprecated due to POODLE, man in the middle attacks, and other vulnerabilities.
+  message: >-
+    Detects direct creations of SSLConnectionSocketFactories that don't disallow SSL v2, SSL v3, and TLS
+    v1.
+    SSLSocketFactory can be used to validate the identity of the HTTPS server against a list of trusted
+    certificates.
+    These protocols are deprecated due to POODLE, man in the middle attacks, and other vulnerabilities.
+  severity: WARNING
   metadata:
-    category: security
-    confidence: MEDIUM
-    cwe: 'CWE-319: Cleartext Transmission of Sensitive Information'
-    impact: MEDIUM
     likelihood: HIGH
-    owasp: A03:2017 - Sensitive Data Exposure
+    impact: MEDIUM
+    confidence: MEDIUM
+    category: security
+    cwe: 'CWE-319: Cleartext Transmission of Sensitive Information'
+    owasp: 'A03:2017 - Sensitive Data Exposure'
     references:
     - https://stackoverflow.com/questions/26429751/java-http-clients-and-poodle
     subcategory:
@@ -20,22 +21,15 @@ rules:
     technology:
     - java
     vulnerability: Insecure Transport
+  languages: [java]
   patterns:
-  - pattern: 'new SSLConnectionSocketFactory(...);
-
-      '
-  - pattern-not: 'new SSLConnectionSocketFactory(..., new String[] {"TLSv1.2", "TLSv1.3"},
-      ...);
-
-      '
-  - pattern-not: 'new SSLConnectionSocketFactory(..., new String[] {"TLSv1.3", "TLSv1.2"},
-      ...);
-
-      '
-  - pattern-not: 'new SSLConnectionSocketFactory(..., new String[] {"TLSv1.3"}, ...);
-
-      '
-  - pattern-not: 'new SSLConnectionSocketFactory(..., new String[] {"TLSv1.2"}, ...);
-
-      '
-  severity: WARNING
+  - pattern: |
+      new SSLConnectionSocketFactory(...);
+  - pattern-not: |
+      new SSLConnectionSocketFactory(..., new String[] {"TLSv1.2", "TLSv1.3"}, ...);
+  - pattern-not: |
+      new SSLConnectionSocketFactory(..., new String[] {"TLSv1.3", "TLSv1.2"}, ...);
+  - pattern-not: |
+      new SSLConnectionSocketFactory(..., new String[] {"TLSv1.3"}, ...);
+  - pattern-not: |
+      new SSLConnectionSocketFactory(..., new String[] {"TLSv1.2"}, ...);

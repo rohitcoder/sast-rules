@@ -1,27 +1,37 @@
 rules:
 - id: seccomp-confinement-disabled__xtzlb
-  languages:
-  - yaml
-  message: Service '$SERVICE' is explicitly disabling seccomp confinement. This runs
+  patterns:
+  - pattern-inside: |
+      version: ...
+      ...
+      services:
+        ...
+  - pattern: |
+      $SERVICE:
+        ...
+        image: ...
+        ...
+        security_opt:
+          - ...
+          - seccomp:unconfined
+  message: >-
+    Service '$SERVICE' is explicitly disabling seccomp confinement. This runs
     the service in an unrestricted state. Remove 'seccomp:unconfined' to prevent this.
   metadata:
-    category: security
-    confidence: LOW
     cwe:
     - 'CWE-284: Improper Access Control'
-    impact: HIGH
-    likelihood: LOW
+    references:
+    - https://docs.docker.com/engine/security/seccomp/
+    category: security
+    technology:
+    - docker-compose
     owasp:
     - A05:2017 - Broken Access Control
     - A01:2021 - Broken Access Control
-    references:
-    - https://docs.docker.com/engine/security/seccomp/
     subcategory:
     - audit
-    technology:
-    - docker-compose
-  patterns:
-  - pattern-inside: "version: ...\n...\nservices:\n  ...\n"
-  - pattern: "$SERVICE:\n  ...\n  image: ...\n  ...\n  security_opt:\n    - ...\n\
-      \    - seccomp:unconfined\n"
+    likelihood: LOW
+    impact: HIGH
+    confidence: LOW
+  languages: [yaml]
   severity: WARNING

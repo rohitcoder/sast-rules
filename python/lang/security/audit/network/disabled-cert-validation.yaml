@@ -1,24 +1,5 @@
 rules:
 - id: disabled-cert-validation__aqatu
-  languages:
-  - python
-  message: certificate verification explicitly disabled, insecure connections possible
-  metadata:
-    category: security
-    confidence: MEDIUM
-    cwe:
-    - 'CWE-295: Improper Certificate Validation'
-    impact: MEDIUM
-    likelihood: HIGH
-    owasp:
-    - A03:2017 - Sensitive Data Exposure
-    - A07:2021 - Identification and Authentication Failures
-    references:
-    - https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures
-    subcategory:
-    - vuln
-    technology:
-    - python
   patterns:
   - pattern-either:
     - pattern: urllib3.PoolManager(..., cert_reqs=$REQS, ...)
@@ -32,4 +13,22 @@ rules:
   - metavariable-regex:
       metavariable: $REQS
       regex: (NONE|CERT_NONE|CERT_OPTIONAL|ssl\.CERT_NONE|ssl\.CERT_OPTIONAL|\'NONE\'|\"NONE\"|\'OPTIONAL\'|\"OPTIONAL\")
+  message: certificate verification explicitly disabled, insecure connections possible
+  metadata:
+    cwe:
+    - 'CWE-295: Improper Certificate Validation'
+    owasp:
+    - A03:2017 - Sensitive Data Exposure
+    - A07:2021 - Identification and Authentication Failures
+    category: security
+    technology:
+    - python
+    references:
+    - https://owasp.org/Top10/A07_2021-Identification_and_Authentication_Failures
+    subcategory:
+    - vuln
+    likelihood: HIGH
+    impact: MEDIUM
+    confidence: MEDIUM
+  languages: [python]
   severity: ERROR
